@@ -41,6 +41,12 @@ _SEED_SYSTEMS = [
         "SBP": "收缩压",
         "DBP": "舒张压",
     }),
+    # ICD-10 诊断码子集（Condition.code 使用）
+    _CodeSystem("http://hl7.org/fhir/sid/icd-10", "2016", {
+        "I10": "Essential (primary) hypertension",
+        "E11": "Type 2 diabetes mellitus",
+        "J45": "Asthma",
+    }),
 ]
 
 # 内置映射：院内码 -> LOINC（一对一，无冲突）

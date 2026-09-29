@@ -20,6 +20,8 @@ _STATUS = {
     RejectReason.MISSING_REQUIRED_FIELD: 422,
     RejectReason.INVALID_FIELD_TYPE: 422,
     RejectReason.ILLEGAL_CODING: 422,
+    RejectReason.VERSION_FIELD_MISMATCH: 422,
+    RejectReason.UNKNOWN_FIELD: 422,
     RejectReason.UNKNOWN_CODE: 422,
     RejectReason.MAPPING_CONFLICT: 409,
     RejectReason.CODE_SYSTEM_VERSION_INCOMPATIBLE: 409,
@@ -30,6 +32,9 @@ _STATUS = {
     RejectReason.VERSION_CONFLICT: 409,
     RejectReason.RESOURCE_NOT_FOUND: 404,
     RejectReason.DUPLICATE_WRITE: 409,
+    RejectReason.RECEIPT_NOT_FOUND: 404,
+    RejectReason.RECEIPT_ALREADY_RESOLVED: 409,
+    RejectReason.RECEIPT_IN_PROGRESS: 409,
 }
 
 
@@ -67,6 +72,25 @@ def ingest_batch(bodies: list[dict]) -> dict:
 @app.get("/resources/{resource_type}/{resource_id}")
 def get_resource(resource_type: str, resource_id: str, token: str | None = None) -> dict:
     return service.get(resource_type, resource_id, token=token)
+
+
+@app.get("/rejections/{receipt_id}")
+def get_rejection(receipt_id: str) -> dict:
+    """查询单条拒绝回执（含资源、批量下标、原因、字段定位、判定依据、去标识化快照）。"""
+    return service.get_receipt(receipt_id)
+
+
+@app.get("/rejections")
+def list_rejections(status: str | None = None) -> dict:
+    """列出回执；?status=open|resolved 可在待处理列表中区分已解决项。"""
+    return {"receipts": service.list_receipts(status)}
+
+
+@app.post("/rejections/{receipt_id}/replay", status_code=201)
+def replay_rejection(receipt_id: str, body: dict,
+                     idempotency_key: str | None = None) -> dict:
+    """按回执修正后重放：走完整校验链路，成功只生效一次。"""
+    return service.replay_rejected(receipt_id, body, idempotency_key=idempotency_key)
 
 
 @app.post("/tokens/{resource_type}/{resource_id}", status_code=201)

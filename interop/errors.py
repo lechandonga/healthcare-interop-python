@@ -15,6 +15,8 @@ class RejectReason(enum.Enum):
     MISSING_REQUIRED_FIELD = "missing_required_field"              # 必填字段缺失
     INVALID_FIELD_TYPE = "invalid_field_type"                      # 字段类型非法
     ILLEGAL_CODING = "illegal_coding"                              # 编码结构非法（如缺 system/code）
+    VERSION_FIELD_MISMATCH = "version_field_mismatch"              # 字段属于其它标准版本，声明版本中不存在
+    UNKNOWN_FIELD = "unknown_field"                                # 字段在本服务定义的任何版本模型中都不存在
 
     # 术语映射
     UNKNOWN_CODE = "unknown_code"                    # 本地码表无此代码
@@ -34,15 +36,25 @@ class RejectReason(enum.Enum):
     RESOURCE_NOT_FOUND = "resource_not_found"        # 资源不存在
     DUPLICATE_WRITE = "duplicate_write"              # 幂等键重复写入
 
+    # 拒绝回执与修正重放
+    RECEIPT_NOT_FOUND = "receipt_not_found"                  # 回执不存在
+    RECEIPT_ALREADY_RESOLVED = "receipt_already_resolved"    # 回执已解决，重放不得重复入库
+    RECEIPT_IN_PROGRESS = "receipt_in_progress"              # 回执正被另一个调用方重放
+
 
 class InteropError(Exception):
     """携带可区分拒绝原因的业务错误。"""
 
-    def __init__(self, reason: RejectReason, detail: str, *, field: str | None = None):
+    def __init__(self, reason: RejectReason, detail: str, *, field: str | None = None,
+                 receipt_id: str | None = None):
         self.reason = reason
         self.detail = detail
         self.field = field
+        self.receipt_id = receipt_id  # 被拒写入对应的留痕回执 id（由服务层写入时附加）
         super().__init__(f"[{reason.value}] {detail}" + (f" (field={field})" if field else ""))
 
     def to_dict(self) -> dict:
-        return {"reason": self.reason.value, "detail": self.detail, "field": self.field}
+        data = {"reason": self.reason.value, "detail": self.detail, "field": self.field}
+        if self.receipt_id is not None:
+            data["receipt_id"] = self.receipt_id
+        return data
