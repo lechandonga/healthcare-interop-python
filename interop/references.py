@@ -1,9 +1,9 @@
 """资源间引用完整性与版本兼容检查。
 
-兼容矩阵（集中定义，见 README）：
+兼容矩阵（集中定义，见 README），版本序 STU3 < R4 < R5：
 - 同版本互引：允许
-- 新版本资源引用旧版本资源（R5 -> R4）：允许（向后兼容读）
-- 旧版本资源引用新版本资源（R4 -> R5）：拒绝 REFERENCE_VERSION_MISMATCH
+- 高版本资源引用低版本资源（如 R5 -> R4、R4 -> STU3）：允许（向后兼容读）
+- 低版本资源引用高版本资源（如 STU3 -> R4、R4 -> R5）：拒绝 REFERENCE_VERSION_MISMATCH
 """
 
 from __future__ import annotations
@@ -13,7 +13,9 @@ from typing import Callable
 from .errors import InteropError, RejectReason
 from .models import NormalizedResource, StandardVersion
 
-_VERSION_ORDER = {StandardVersion.FHIR_R4: 4, StandardVersion.FHIR_R5: 5}
+_VERSION_ORDER = {StandardVersion.FHIR_STU3: 3,
+                  StandardVersion.FHIR_R4: 4,
+                  StandardVersion.FHIR_R5: 5}
 
 
 def is_version_compatible(source: StandardVersion, target: StandardVersion) -> bool:

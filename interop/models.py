@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 class StandardVersion(enum.Enum):
     """本服务支持的标准版本范围。"""
 
+    FHIR_STU3 = "fhir-stu3"
     FHIR_R4 = "fhir-r4"
     FHIR_R5 = "fhir-r5"
 
@@ -28,6 +29,7 @@ class StandardVersion(enum.Enum):
 class ResourceType(enum.Enum):
     PATIENT = "Patient"
     OBSERVATION = "Observation"
+    CONDITION = "Condition"
 
     @classmethod
     def parse(cls, raw: str) -> "ResourceType":

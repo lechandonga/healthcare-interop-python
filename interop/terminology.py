@@ -41,6 +41,11 @@ _SEED_SYSTEMS = [
         "SBP": "收缩压",
         "DBP": "舒张压",
     }),
+    _CodeSystem("http://local.example/diagnosis", "1.0", {
+        "I10": "高血压病",
+        "E11": "2 型糖尿病",
+        "J45": "哮喘",
+    }),
 ]
 
 # 内置映射：院内码 -> LOINC（一对一，无冲突）

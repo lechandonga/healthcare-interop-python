@@ -23,6 +23,21 @@ def _redact(value: object) -> str:
     return f"REDACTED:{digest}"
 
 
+def scrub_sensitive_text(text: str, secret_values: list[str]) -> str:
+    """把拒绝回执文本中可能出现的敏感原值替换为 REDACTED 占位符。
+
+    secret_values 是从原始输入中抽取的敏感字段内容的稳定序列化串；
+    回执 detail 里若回显了这些值（如畸形结构里的姓名/电话），一律遮蔽，
+    保证回执可查但不泄漏敏感原文。
+    """
+    scrubbed = text
+    for secret in secret_values:
+        if secret and len(secret) >= 2 and secret in scrubbed:
+            digest = hashlib.sha256(secret.encode("utf-8")).hexdigest()[:12]
+            scrubbed = scrubbed.replace(secret, f"REDACTED:{digest}")
+    return scrubbed
+
+
 class DeidentificationService:
     def __init__(self) -> None:
         self._vault: dict[str, dict] = {}          # resource_key -> 敏感字段原值

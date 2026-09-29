@@ -30,6 +30,12 @@ _STATUS = {
     RejectReason.VERSION_CONFLICT: 409,
     RejectReason.RESOURCE_NOT_FOUND: 404,
     RejectReason.DUPLICATE_WRITE: 409,
+    RejectReason.FIELD_NOT_DEFINED_FOR_VERSION: 422,
+    RejectReason.UNKNOWN_FIELD: 422,
+    RejectReason.RECEIPT_NOT_FOUND: 404,
+    RejectReason.RECEIPT_ALREADY_RESOLVED: 409,
+    RejectReason.RECEIPT_RESOLVED_ELSEWHERE: 409,
+    RejectReason.RECEIPT_TARGET_MISMATCH: 422,
 }
 
 
@@ -62,6 +68,22 @@ def update(resource_type: str, resource_id: str, body: dict,
 @app.post("/resources/batch")
 def ingest_batch(bodies: list[dict]) -> dict:
     return service.ingest_batch(bodies)
+
+
+@app.get("/receipts")
+def list_receipts(status: str | None = None) -> dict:
+    return service.list_receipts(status=status)
+
+
+@app.get("/receipts/{receipt_id}")
+def get_receipt(receipt_id: str) -> dict:
+    return service.get_receipt(receipt_id)
+
+
+@app.post("/receipts/{receipt_id}/replay", status_code=200)
+def replay_receipt(receipt_id: str, body: dict,
+                   idempotency_key: str | None = None) -> dict:
+    return service.replay(receipt_id, body, idempotency_key=idempotency_key)
 
 
 @app.get("/resources/{resource_type}/{resource_id}")

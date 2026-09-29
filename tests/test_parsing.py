@@ -54,12 +54,12 @@ def test_patient_rejections_are_classified(sample, reason):
       "status": "final",
       "code": {"coding": [{"system": "http://loinc.org", "code": "8480-6"}]},
       "subject": {"reference": "Patient/p1"}}, RejectReason.MISSING_REQUIRED_FIELD),
-    # R5 用了 R4 的字段（版本字段错位）
+    # R5 用了 R4/STU3 才有的字段（版本字段错位，与未知字段原因可区分）
     ({"standard_version": "fhir-r5", "resourceType": "Observation", "id": "o1",
       "status": "final",
       "code": {"coding": [{"system": "http://loinc.org", "code": "8480-6"}]},
       "subject": {"reference": "Patient/p1"},
-      "effectiveDateTime": "2026-09-22T10:00:00"}, RejectReason.MISSING_REQUIRED_FIELD),
+      "effectiveDateTime": "2026-09-22T10:00:00"}, RejectReason.FIELD_NOT_DEFINED_FOR_VERSION),
     # R4 不允许 R5 才有的 status
     ({"standard_version": "fhir-r4", "resourceType": "Observation", "id": "o1",
       "status": "corrected",
